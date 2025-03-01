@@ -28,6 +28,7 @@ const browserRouter = createBrowserRouter([
         element: (
           <ProtectedRoutes>
             <HomePage />
+            <DashboardPage />
           </ProtectedRoutes>
         ),
       },

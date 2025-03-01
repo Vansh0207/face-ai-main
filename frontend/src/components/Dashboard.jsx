@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { FiPlus } from "react-icons/fi";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ export default function DashboardPage() {
   if (!user) return <div className="text-center p-6">Loading...</div>;
 
   return (
-    <div className="relative min-h-screen bg-black text-gray-100 select-none">
+    <div className="relative min-h-[60vh] bg-black text-gray-100 select-none pb-20">
       {/* Full-screen background image */}
       <img
         src="redbg.jpg"
@@ -56,7 +55,7 @@ export default function DashboardPage() {
       <div className="relative z-10">
         <div className="container mx-auto px-3 py-4">
           <div className="flex items-center justify-between mb-4 mx-6">
-            <h1 className="text-2xl font-bold text-white">My Groups</h1>
+            <h1 className="text-2xl font-bold text-white">Joined Groups</h1>
             <button
               className="bg-[#042035] hover:bg-[#165686] text-white px-4 py-2 text-sm rounded-lg transition-colors duration-200"
               onClick={() => setShowModal(true)}
