@@ -9,66 +9,82 @@ import About from "./components/About";
 import EditProfile from "./components/EditProfile";
 import ChangePassword from "./components/ChangePassword";
 import HomePage from "./components/Home";
+import UploadImagePage from "./components/UploadImagePage";
 
 const browserRouter = createBrowserRouter([
   {
     path: "/",
-    element:
+    element: (
       <ProtectedRoutes>
         <MainLayout />
-      </ProtectedRoutes>,
+      </ProtectedRoutes>
+    ),
     children: [
       {
-        path: '/',
-        element:
+        path: "/",
+        element: (
           <ProtectedRoutes>
             <HomePage />
           </ProtectedRoutes>
+        ),
       },
       {
-        path: '/profile/:id',
-        element:
+        path: "/profile/:id",
+        element: (
           <ProtectedRoutes>
             <Profile />
           </ProtectedRoutes>
+        ),
       },
       {
-        path: '/profile/:id/edit',
-        element:
+        path: "/profile/:id/edit",
+        element: (
           <ProtectedRoutes>
             <EditProfile />
           </ProtectedRoutes>
+        ),
       },
       {
-        path: '/profile/:id/change-password',
-        element:
+        path: "/profile/:id/change-password",
+        element: (
           <ProtectedRoutes>
             <ChangePassword />
           </ProtectedRoutes>
+        ),
       },
       {
-        path: '/contact',
-        element:
+        path: "/contact",
+        element: (
           <ProtectedRoutes>
             <Contact />
           </ProtectedRoutes>
+        ),
       },
       {
-        path: '/about',
-        element:
+        path: "/about",
+        element: (
           <ProtectedRoutes>
             <About />
           </ProtectedRoutes>
+        ),
       },
-    ]
+      {
+        path: "/upload-image",
+        element: (
+          <ProtectedRoutes>
+            <UploadImagePage />
+          </ProtectedRoutes>
+        ),
+      },
+    ],
   },
   {
-    path: '/login',
-    element: <Login />
+    path: "/login",
+    element: <Login />,
   },
   {
-    path: '/signup',
-    element: <Signup />
+    path: "/signup",
+    element: <Signup />,
   },
 ]);
 
