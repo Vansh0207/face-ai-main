@@ -62,6 +62,46 @@ def encode_image():
         "encodings": [encoding.tolist() for encoding in encodings]
     })
 
+
+@app.route("/encode-multiple", methods=["POST"])
+def encode_multiple_images():
+    """
+    Receives multiple image URLs, extracts face encodings, and returns them as JSON.
+    """
+    data = request.get_json()
+    if not data or "images" not in data:
+        return jsonify({"error": "No image URLs provided"}), 400
+
+    image_urls = data["images"]
+    encodings_list = []
+
+    for image_url in image_urls:
+        try:
+            response = requests.get(image_url)
+            response.raise_for_status()
+        except Exception as e:
+            encodings_list.append({"image_url": image_url, "error": str(e)})
+            continue
+
+        image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+        encodings, error = get_face_encodings_from_image(image)
+        if error:
+            encodings_list.append({"image_url": image_url, "encodings": []})
+        else:
+            encodings_list.append({"image_url": image_url, "encodings": encodings})
+    return jsonify({
+        "results": [
+            {"image_url": item["image_url"], "encodings": [enc.tolist() for enc in item["encodings"]] if isinstance(item["encodings"], list) else item["encodings"]}
+            for item in encodings_list
+        ]
+    })
+
+
+
+
+
 @app.route("/compare", methods=["POST"])
 def compare_faces():
     """Compares a selfie encoding with stored encodings."""

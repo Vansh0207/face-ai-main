@@ -10,6 +10,7 @@ import EditProfile from "./components/EditProfile";
 import ChangePassword from "./components/ChangePassword";
 import HomePage from "./components/Home";
 import UploadImagePage from "./components/UploadImagePage";
+import GroupImages from "./components/Group";
 
 const browserRouter = createBrowserRouter([
   {
@@ -73,6 +74,14 @@ const browserRouter = createBrowserRouter([
         element: (
           <ProtectedRoutes>
             <UploadImagePage />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/group/:id",
+        element: (
+          <ProtectedRoutes>
+            <GroupImages />
           </ProtectedRoutes>
         ),
       },
