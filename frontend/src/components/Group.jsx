@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
+  FaFacebook,
+  FaLinkedin,
+  FaWhatsapp,
+  FaWhatsappSquare,
+} from "react-icons/fa";
+
+import {
   Share2,
   Download,
   Check,
@@ -12,6 +19,14 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import JSZip from "jszip";
 import { toast } from "sonner";
+import { QRCodeCanvas } from "qrcode.react";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  LinkedinShareButton,
+  WhatsappShareButton,
+} from "react-share";
+import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
 
 const GroupImages = () => {
   const { id } = useParams();
@@ -24,6 +39,7 @@ const GroupImages = () => {
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [slideDirection, setSlideDirection] = useState("right");
+  const [showPopup, setShowPopup] = useState(false);
 
   // Fixed group reference issue - created a derived value instead of using undefined variable
   const group = {
@@ -249,7 +265,8 @@ const GroupImages = () => {
               </h1>
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={handleShare}
+                  // onClick={handleShare}
+                  onClick={() => setShowPopup(true)}
                   className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
                 >
                   <Share2 className="w-5 h-5" />
@@ -356,6 +373,10 @@ const GroupImages = () => {
         </div>
       </div>
 
+      {showPopup && (
+        <SharePopup qrValue={groupUrl} onClose={() => setShowPopup(false)} />
+      )}
+
       {/* Image Modal */}
       {selectedImageIndex !== null && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -438,3 +459,59 @@ const GroupImages = () => {
 };
 
 export default GroupImages;
+
+const SharePopup = ({ qrValue, onClose }) => {
+  const shareUrl = qrValue; // URL to be shared
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white bg-opacity-80 backdrop-blur-lg p-6 rounded-2xl shadow-xl text-center w-[350px] relative border border-gray-300">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-600 hover:text-gray-800"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {/* Title */}
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          Share QR Code
+        </h2>
+
+        {/* QR Code */}
+        <div className="flex justify-center">
+          <QRCodeCanvas
+            value={qrValue}
+            size={180}
+            className="p-2 border rounded-md bg-white shadow"
+          />
+        </div>
+
+        {/* Social Media Share Buttons */}
+        <div className="flex justify-center gap-5 mt-5">
+          <WhatsappShareButton url={shareUrl}>
+            <FaWhatsapp className="text-green-500 w-10 h-10 hover:scale-110 transition-transform" />
+          </WhatsappShareButton>
+          <TwitterShareButton url={shareUrl}>
+            <FaXTwitter className="text-black w-10 h-10 hover:scale-110 transition-transform" />
+          </TwitterShareButton>
+          <LinkedinShareButton url={shareUrl}>
+            <FaLinkedin className="text-blue-700 w-10 h-10 hover:scale-110 transition-transform" />
+          </LinkedinShareButton>
+          <FacebookShareButton url={shareUrl}>
+            <FaFacebook className="text-blue-600 w-10 h-10 hover:scale-110 transition-transform" />
+          </FacebookShareButton>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="mt-6 px-5 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
