@@ -13,10 +13,7 @@ const Footer = () => {
               className="md:h-20 h-16 mr-0 scale-200"
             />
           </Link>
-          <p className="text-gray-200 mb-2">
-            Transform YouTube videos into interactive quizzes and insightful
-            summaries.
-          </p>
+          <p className="text-gray-200 mb-2">Your Photos Your Privacy.</p>
           <div className="flex flex-row gap-2 w-full items-center justify-center">
             <Link
               to={"https://github.com/Vermasaiyam"}
