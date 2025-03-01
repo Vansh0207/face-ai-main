@@ -108,7 +108,7 @@ export const login = async (req, res) => {
 
     const populatedGroups = await Promise.all(
       user.groups.map(async (groupId) => {
-        const group = await Group.findById(videoId);
+        const group = await Group.findById(groupId);
 
         if (group && group.author && group.author.equals(user._id)) {
           return group;
