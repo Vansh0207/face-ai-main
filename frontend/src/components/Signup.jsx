@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { X } from "lucide-react";
 
 const API_END_POINT =
   import.meta.env.VITE_API_END_POINT_USER ||
