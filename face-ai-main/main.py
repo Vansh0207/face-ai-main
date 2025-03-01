@@ -5,6 +5,8 @@ import numpy as np
 import os
 import requests
 from flask_cors import CORS
+from io import BytesIO
+from PIL import Image
 
 app = Flask(__name__, template_folder=".")  # Set root directory for templates
 CORS(app)
@@ -99,22 +101,33 @@ def encode_multiple_images():
     })
 
 
-
-
-
 @app.route("/compare", methods=["POST"])
 def compare_faces():
-    """Compares a selfie encoding with stored encodings."""
+    """Fetches images, encodes them, and compares with the selfie encoding."""
     data = request.get_json()
     selfie_encoding = np.array(data.get("selfie_encoding"))
-    event_encodings = [np.array(enc) for enc in data.get("event_encodings", [])]
-    
-    if not selfie_encoding.any() or not event_encodings:
-        return jsonify({"error": "Invalid encodings provided"}), 400
+    image_urls = data.get("event_images", [])
 
-    results = [face_recognition.compare_faces([enc], selfie_encoding)[0] for enc in event_encodings]
-    
-    return jsonify({"match_found": any(results)})
+    if selfie_encoding is None or not image_urls:
+        return jsonify({"error": "Invalid encodings or image URLs provided"}), 400
+
+    matched_images = []
+
+    for url in image_urls:
+        try:
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            img_np = np.array(img)
+
+            face_encodings = face_recognition.face_encodings(img_np)
+            if face_encodings:
+                match = face_recognition.compare_faces([face_encodings[0]], selfie_encoding)[0]
+                if match:
+                    matched_images.append(url)  # Add matched image URL to the array
+        except Exception as e:
+            print(f"Error processing image {url}: {e}")
+
+    return jsonify({"match_found": bool(matched_images), "matched_images": matched_images})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

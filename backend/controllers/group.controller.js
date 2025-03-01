@@ -95,3 +95,32 @@ export const getGroup = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch group details" });
   }
 };
+
+export const getGroupDetails = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const group = await Group.findById(groupId);
+    if (!group) return res.status(404).json({ message: "Group not found" });
+
+    res.json(group);
+  } catch (error) {
+    console.error("Error fetching group:", error);
+    res.status(500).json({ message: "Failed to fetch group" });
+  }
+};
+
+export const joinGroup = async (req, res) => {
+  const { userId, groupId } = req.body;
+
+  try {
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { groups: groupId }, // Ensures groupId is not duplicated
+    });
+
+    res.json({ message: "Group joined successfully!" });
+  } catch (error) {
+    console.error("Error adding user to group:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

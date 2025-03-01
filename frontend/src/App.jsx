@@ -11,6 +11,7 @@ import ChangePassword from "./components/ChangePassword";
 import HomePage from "./components/Home";
 import UploadImagePage from "./components/UploadImagePage";
 import GroupImages from "./components/Group";
+import GroupPage from "./components/SharedUserPage";
 
 const browserRouter = createBrowserRouter([
   {
@@ -82,6 +83,14 @@ const browserRouter = createBrowserRouter([
         element: (
           <ProtectedRoutes>
             <GroupImages />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/group/:groupName/:groupId",
+        element: (
+          <ProtectedRoutes>
+            <GroupPage />
           </ProtectedRoutes>
         ),
       },

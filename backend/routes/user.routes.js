@@ -3,6 +3,7 @@ import {
   changePassword,
   deleteAccount,
   editProfile,
+  getFullUser,
   getProfile,
   getUserGroups,
   login,
@@ -28,5 +29,6 @@ router.route("/logout").get(logout);
 router.route("/userData/:id").get(userData);
 router.route("/groups").get(getUserGroups);
 router.route("/delete/:userId").delete(deleteAccount);
+router.route("/:userId").get(getFullUser);
 
 export default router;
