@@ -8,49 +8,57 @@ import Contact from "./components/Contact";
 import About from "./components/About";
 import EditProfile from "./components/EditProfile";
 import ChangePassword from "./components/ChangePassword";
+import HomePage from "./components/Home";
 
 const browserRouter = createBrowserRouter([
   {
     path: "/",
     element:
-      // <ProtectedRoutes>
-        <MainLayout />,
-      // </ProtectedRoutes>,
+      <ProtectedRoutes>
+        <MainLayout />
+      </ProtectedRoutes>,
     children: [
+      {
+        path: '/',
+        element:
+          <ProtectedRoutes>
+            <HomePage />
+          </ProtectedRoutes>
+      },
       {
         path: '/profile/:id',
         element:
-          // <ProtectedRoutes>
+          <ProtectedRoutes>
             <Profile />
-          // </ProtectedRoutes>
+          </ProtectedRoutes>
       },
       {
         path: '/profile/:id/edit',
         element:
-          // <ProtectedRoutes>
+          <ProtectedRoutes>
             <EditProfile />
-          // </ProtectedRoutes>
+          </ProtectedRoutes>
       },
       {
         path: '/profile/:id/change-password',
         element:
-          // <ProtectedRoutes>
+          <ProtectedRoutes>
             <ChangePassword />
-          // </ProtectedRoutes>
+          </ProtectedRoutes>
       },
       {
         path: '/contact',
         element:
-          // <ProtectedRoutes>
+          <ProtectedRoutes>
             <Contact />
-          // </ProtectedRoutes>
+          </ProtectedRoutes>
       },
       {
         path: '/about',
         element:
-          // <ProtectedRoutes>
+          <ProtectedRoutes>
             <About />
-          // </ProtectedRoutes>
+          </ProtectedRoutes>
       },
     ]
   },
