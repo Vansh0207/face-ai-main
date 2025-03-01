@@ -10,9 +10,6 @@ export const register = async (req, res) => {
     const { username, email, password } = req.body;
     const profilePicture = req.file;
 
-    // console.log("Request Body:", req.body);
-    // console.log("Uploaded File:", req.file);
-
     if (!password) {
       return res
         .status(400)
@@ -172,16 +169,71 @@ export const logout = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const userId = req.params.id;
-    let user = await User.findById(userId).populate({
-      path: "groups",
+    let user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Fetch related groups manually
+    const groups = await Group.find({ _id: { $in: user.groups } }).sort({
       createdAt: -1,
     });
+    const createdGroups = await Group.find({
+      _id: { $in: user.createdGroups },
+    }).sort({ createdAt: -1 });
+
+    console.log("User Data:", user);
+    console.log("Groups:", groups);
+    console.log("Created Groups:", createdGroups);
+
     return res.status(200).json({
-      user,
       success: true,
+      user: { ...user.toObject(), groups, createdGroups },
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const userData = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    let user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Fetch related groups manually
+    const groups = await Group.find({ _id: { $in: user.groups } }).sort({
+      createdAt: -1,
+    });
+    const createdGroups = await Group.find({
+      _id: { $in: user.createdGroups },
+    }).sort({ createdAt: -1 });
+
+    console.log("User Data:", user);
+    console.log("Groups:", groups);
+    console.log("Created Groups:", createdGroups);
+
+    return res.status(200).json({
+      success: true,
+      user: { ...user.toObject(), groups, createdGroups },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
@@ -218,34 +270,6 @@ export const editProfile = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error", success: false });
-  }
-};
-
-export const userData = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const user = await User.findById(userId).populate({
-      path: "groups",
-      options: { sort: { createdAt: -1 } },
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    return res.status(200).json({
-      user,
-      success: true,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
   }
 };
 

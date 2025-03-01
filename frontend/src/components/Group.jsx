@@ -2,46 +2,57 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import Modal from "react-modal";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiCopy } from "react-icons/fi";
 
 Modal.setAppElement("#root");
 
 const GroupImages = () => {
   const { id } = useParams();
   const [images, setImages] = useState([]);
+  const [groupName, setGroupName] = useState(""); // Store group name
+  const [groupUrl, setGroupUrl] = useState(""); // Store group name
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
-    const fetchImages = async () => {
+    const fetchGroupData = async () => {
       try {
         const response = await axios.get(
           `http://localhost:8000/api/group/${id}`
         );
+        console.log("response: ", response.data);
+
+        setGroupName(response.data.name);
         setImages(response.data.photos);
+        setGroupUrl(response.data.url);
       } catch (err) {
         setError("Failed to fetch images");
       } finally {
         setLoading(false);
       }
     };
-    fetchImages();
+    fetchGroupData();
   }, [id]);
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(groupUrl);
+    alert("Group URL copied to clipboard!");
+  };
 
   const handleDownload = async (imageUrl) => {
     try {
-      const response = await fetch(imageUrl, { mode: "no-cors" }); // Fetch the image
-      const blob = await response.blob(); // Convert response to Blob
-      const url = window.URL.createObjectURL(blob); // Create a local URL
+      const response = await fetch(imageUrl, { mode: "no-cors" });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `image_${Date.now()}.jpg`; // Set download file name
+      link.download = `image_${Date.now()}.jpg`;
       document.body.appendChild(link);
-      link.click(); // Trigger download
+      link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url); // Cleanup URL
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to download image:", error);
     }
@@ -52,7 +63,28 @@ const GroupImages = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-4">Group Images</h2>
+      {/* Group Title & URL */}
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-bold text-gray-800">
+          {groupName || "Group Images"}
+        </h2>
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 bg-gray-100 p-3 rounded-md shadow-md">
+          {/* Group URL */}
+          <span className="text-sm text-gray-700 font-medium break-all max-w-[80%] bg-white px-2 py-1 rounded-md border border-gray-300">
+            {groupUrl}
+          </span>
+
+          {/* Copy Button */}
+          <button
+            onClick={handleCopyUrl}
+            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-all shadow-md active:scale-95"
+          >
+            <FiCopy className="text-lg" /> Copy URL
+          </button>
+        </div>
+      </div>
+
+      {/* Image Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.length > 0 ? (
           images.map((image, index) => (
@@ -97,9 +129,9 @@ const GroupImages = () => {
           />
           <a
             href={selectedImage}
-            download={`image_${Date.now()}.jpg`} // Ensures the file is downloaded
+            download={`image_${Date.now()}.jpg`}
             onClick={(e) => {
-              e.preventDefault(); // Prevents navigation
+              e.preventDefault();
               handleDownload(selectedImage);
             }}
             className="flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg mt-4"

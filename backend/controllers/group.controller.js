@@ -63,7 +63,6 @@ export const createGroup = async (req, res) => {
     res.status(500).json({ message: "Failed to create group." });
   }
 };
-
 export const getGroup = async (req, res) => {
   try {
     const { id } = req.params;
@@ -73,14 +72,20 @@ export const getGroup = async (req, res) => {
       return res.status(400).json({ message: "Invalid group ID format" });
     }
 
+    // 🔹 Find the group by ID
     const group = await Group.findById(id);
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    res.status(200).json({ photos: group.photos });
+    // Send all group details in response
+    res.status(200).json({
+      name: group.groupName, // Group name
+      url: group.groupUrl, // Group URL
+      photos: group.photos, // Group images
+    });
   } catch (error) {
-    console.error("Error fetching group images:", error);
-    res.status(500).json({ message: "Failed to fetch images" });
+    console.error("Error fetching group details:", error);
+    res.status(500).json({ message: "Failed to fetch group details" });
   }
 };

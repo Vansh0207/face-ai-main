@@ -5,6 +5,9 @@ import { useSelector } from "react-redux";
 export default function HomePage() {
   const { user } = useSelector((store) => store.auth);
   const createdGroups = user?.createdGroups || [];
+
+  console.log("User Data:", user);
+
   const navigate = useNavigate();
 
   return (
