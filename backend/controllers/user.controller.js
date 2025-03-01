@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import getDataUri from "../utils/dataUri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Group } from "../models/group.model.js";
+import asyncHandler from "express-async-handler";
 
 export const register = async (req, res) => {
   try {
@@ -345,3 +346,29 @@ export const deleteAccount = async (req, res) => {
     return res.status(500).json({ message: "Server error. Please try again." });
   }
 };
+
+export const getUserGroups = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No user ID provided" });
+    }
+
+    // ✅ Populate createdGroups with actual group details
+    const user = await User.findById(userId)
+      .populate("createdGroups") // Populate with group details
+      .select("createdGroups");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ createdGroups: user.createdGroups });
+  } catch (error) {
+    console.error("Error fetching user groups:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});

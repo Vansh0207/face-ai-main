@@ -30,6 +30,7 @@ export const uploadImages = async (req, res) => {
     res.status(500).json({ message: "Failed to upload images." });
   }
 };
+
 export const createGroup = async (req, res) => {
   try {
     const { userId, groupName, photos } = req.body;
@@ -40,14 +41,17 @@ export const createGroup = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Create new group
+    // Create new group (without groupUrl initially)
     const newGroup = new Group({
       groupName,
-      groupUrl: `/group/${groupName}`,
       photos,
     });
 
-    await newGroup.save();
+    await newGroup.save(); // Save first to generate _id
+
+    // Now update groupUrl with the generated _id
+    newGroup.groupUrl = `http://localhost:5173/group/${groupName}/${newGroup._id}`;
+    await newGroup.save(); // Save again with the updated groupUrl
 
     // Update user's createdGroups
     user.createdGroups.push(newGroup._id);
@@ -57,12 +61,14 @@ export const createGroup = async (req, res) => {
     res.status(201).json({
       message: "Group created successfully",
       groupId: newGroup._id,
+      groupUrl: newGroup.groupUrl,
     });
   } catch (error) {
     console.error("Error creating group:", error);
-    res.status(500).json({ message: "Failed to create group." });
+    res.status(500).json({ message: "Failed to create group.", error });
   }
 };
+
 export const getGroup = async (req, res) => {
   try {
     const { id } = req.params;
