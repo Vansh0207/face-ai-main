@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import DashboardSkeleton from "./skeletons/DashboardSkeleton";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function DashboardPage() {
   const [groups, setGroups] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [groupUrl, setGroupUrl] = useState("");
-
+  const [loading, setLoading] = useState(true);
   // Fetch User Details
   useEffect(() => {
     const fetchUserData = async () => {
@@ -22,6 +23,7 @@ export default function DashboardPage() {
         setGroups(
           Array.isArray(response.data.groups) ? response.data.groups : []
         );
+        setLoading(false);
         console.log("Fetched groups:", response.data.groups);
       } catch (error) {
         console.error("Error fetching user details:", error);
@@ -41,7 +43,7 @@ export default function DashboardPage() {
     window.location.reload();
   };
 
-  if (!user) return <div className="text-center p-6">Loading...</div>;
+  if (!user) return <DashboardSkeleton />;
 
   return (
     <div className="relative min-h-[60vh] bg-black text-gray-100 select-none pb-20">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import GroupSkeleton from "./skeletons/GroupSkeleton";
 import {
   FaFacebook,
   FaLinkedin,
@@ -242,6 +243,10 @@ const GroupImages = () => {
       }
     });
   };
+
+  if (loading) {
+    return <GroupSkeleton />;
+  }
 
   return (
     <div className="relative min-h-screen bg-black text-gray-100 select-none">

@@ -202,7 +202,7 @@ const Signup = () => {
               <img
                 src={imagePreview}
                 alt="Selected"
-                className="w-full h-48 object-cover border border-white rounded-md"
+                className="w-full h-48 object-contain border border-white rounded-md"
               />
               <button
                 type="button"
