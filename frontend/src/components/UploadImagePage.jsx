@@ -87,56 +87,71 @@ export default function UploadImagePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
-        Create a New Group
-      </h1>
-
-      <input
-        type="text"
-        value={groupName}
-        onChange={(e) => setGroupName(e.target.value)}
-        placeholder="Enter group name"
-        className="mb-4 px-4 py-2 border border-gray-300 rounded-lg shadow-sm w-80 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    <div className="relative w-full min-h-[60vh] bg-black">
+      {/* Full-screen background image with overlay */}
+      <img
+        src="redbg.jpg"
+        alt="Background"
+        className="fixed inset-0 w-full h-full object-cover bg-black opacity-20"
       />
 
-      <label className="cursor-pointer mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition">
-        Select Images
+      {/* Upload form */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-lg flex flex-col gap-3 p-4 max-w-sm w-[90%] bg-black/90 z-10 rounded-lg my-4">
+        <h1 className="text-center font-bold text-3xl text-white">
+          Create a New Group
+        </h1>
+        <p className="text-center text-gray-300 text-sm">
+          Upload images to create a new group.
+        </p>
+
         <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          className="hidden"
+          type="text"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          placeholder="Enter group name"
+          className="p-2.5 border border-white rounded-md w-full text-white bg-transparent text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          required
         />
-      </label>
 
-      {images.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          {images.map((image, index) => (
-            <div key={index} className="relative">
-              <img
-                src={URL.createObjectURL(image)}
-                alt="Selected"
-                className="w-28 h-28 object-cover rounded-lg shadow-md"
-              />
-              <button
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                onClick={() => handleDeleteImage(index)}
-              >
-                <Trash size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+        <label className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition-colors">
+          Select Images
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
 
-      <button
-        onClick={handleUpload}
-        className="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition-all duration-300"
-        disabled={loading}
-      >
-        {loading ? "Uploading..." : "Upload & Create Group"}
-      </button>
+        {images.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {images.map((image, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="Selected"
+                  className="w-20 h-20 object-cover rounded-md shadow-md"
+                />
+                <button
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                  onClick={() => handleDeleteImage(index)}
+                >
+                  <Trash size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="p-2.5 bg-[#042035] hover:bg-[#165686] text-white rounded-md cursor-pointer transition-colors"
+          disabled={loading}
+          onClick={handleUpload}
+        >
+          {loading ? "Uploading..." : "Upload & Create Group"}
+        </button>
+      </div>
     </div>
   );
 }
