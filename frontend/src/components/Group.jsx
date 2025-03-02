@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import GroupSkeleton from "./skeletons/GroupSkeleton";
-import {
-  FaFacebook,
-  FaLinkedin,
-  FaWhatsapp,
-  FaWhatsappSquare,
-} from "react-icons/fa";
+import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 
 import {
   Share2,
@@ -27,7 +22,7 @@ import {
   LinkedinShareButton,
   WhatsappShareButton,
 } from "react-share";
-import { FaSquareXTwitter, FaXTwitter } from "react-icons/fa6";
+import { FaXTwitter } from "react-icons/fa6";
 
 const GroupImages = () => {
   const { id } = useParams();
