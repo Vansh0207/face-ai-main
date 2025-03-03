@@ -1,8 +1,7 @@
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import React, { useState, useEffect } from "react";
-import GroupSkeleton from "./skeletons/GroupSkeleton";
+import React, { useState, useEffect, useRef } from "react";
 import { FaFacebook, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 import {
   Share2,
@@ -37,6 +36,9 @@ export default function GroupPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [slideDirection, setSlideDirection] = useState("right");
   const [showPopup, setShowPopup] = useState(false);
+  const [showJoinPopup, setShowJoinPopup] = useState(false);
+  const [hasCheckedMembership, setHasCheckedMembership] = useState(false);
+  const processedFaceMatchings = useRef(new Set());
 
   // Fetch User Details
   useEffect(() => {
@@ -65,8 +67,10 @@ export default function GroupPage() {
         );
         setGroup(response.data);
 
-        if (user?.groups?.includes(groupId)) {
-          setShowPopup(false);
+        // Check if user is not in the group
+        if (user && !user.groups.includes(groupId) && !hasCheckedMembership) {
+          setShowJoinPopup(true);
+          setHasCheckedMembership(true);
         }
       } catch (error) {
         console.error("Error fetching group:", error);
@@ -74,16 +78,33 @@ export default function GroupPage() {
     };
 
     if (user) fetchGroup();
-  }, [groupId, user]);
+  }, [groupId, user, hasCheckedMembership]);
 
-  // Face Matching API Call
+  // Face Matching API Call - Optimized to reduce calls
   useEffect(() => {
     const matchFaces = async () => {
+      // Skip if any required data is missing
       if (!user || !group || !user.faceEncoding || !group.photos.length) {
         return;
       }
 
+      // Skip if we're already matching
+      if (isMatching) {
+        return;
+      }
+
+      // Create a unique key for this user+group combination
+      const matchKey = `${user._id}-${groupId}`;
+
+      // Skip if we've already processed this combination
+      if (processedFaceMatchings.current.has(matchKey)) {
+        return;
+      }
+
+      // Mark this combination as being processed
+      processedFaceMatchings.current.add(matchKey);
       setIsMatching(true);
+
       try {
         const response = await axios.post("http://127.0.0.1:5000/compare", {
           selfie_encoding: user.faceEncoding,
@@ -97,15 +118,20 @@ export default function GroupPage() {
         }
       } catch (error) {
         console.error("Error in face matching:", error);
+        toast.error(
+          "Face matching service unavailable. Please try again later."
+        );
+        // Remove the key to allow retrying later
+        processedFaceMatchings.current.delete(matchKey);
       } finally {
         setIsMatching(false);
       }
     };
 
-    if (user && group) {
+    if (user && group && !isMatching) {
       matchFaces();
     }
-  }, [user, group]);
+  }, [user, group, groupId, isMatching]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -278,50 +304,75 @@ export default function GroupPage() {
   };
 
   const handleJoinGroup = async () => {
-    setShowPopup(false);
     if (!user || !group) return;
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/group/join-group", {
-        userId: user._id,
-        groupId,
-      });
-      console.log("User joined group successfully");
+      const response = await axios.post(
+        "http://localhost:8000/api/group/join-group",
+        {
+          userId: user._id,
+          groupId,
+        }
+      );
+
+      // Update local user state to include the joined group
+      setUser((prevUser) => ({
+        ...prevUser,
+        groups: [...prevUser.groups, groupId],
+      }));
+
+      setShowJoinPopup(false);
+      toast.success("Successfully joined the group!");
     } catch (error) {
       console.error("Error joining group:", error);
+      toast.error("Failed to join the group");
     }
   };
 
-  const handleCopyUrl = () => {
-    if (group?.groupUrl) {
-      navigator.clipboard.writeText(group.groupUrl);
-      alert("Group URL copied!");
-    }
-  };
+  // Force a re-match if necessary
+  const handleForceRematch = () => {
+    // Remove the processed flag to allow re-matching
+    const matchKey = `${user._id}-${groupId}`;
+    processedFaceMatchings.current.delete(matchKey);
 
-  const handleDownloadImage = (imageUrl) => {
-    const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = "image.jpg";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Reset matching state
+    setIsMatching(false);
+    setMatchedImages([]);
+
+    // Toast to inform user
+    toast.info("Re-matching faces...");
+
+    // The useEffect for matching will fire again
   };
 
   if (!group || !user) return <div className="text-center p-6">Loading...</div>;
 
   return (
     <div className="relative min-h-screen bg-black text-gray-100 select-none">
-      {showPopup && !user.groups.includes(groupId) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4">
+      {/* Join Group Popup */}
+      {showJoinPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center p-4 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center w-full max-w-sm">
-            <h2 className="text-xl font-bold mb-4">Join Group?</h2>
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-              onClick={handleJoinGroup}
-            >
-              Yes, Join
-            </button>
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Join Group?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Would you like to join this group to view and download photos?
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition"
+                onClick={() => setShowJoinPopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                onClick={handleJoinGroup}
+              >
+                Yes, Join
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -346,7 +397,6 @@ export default function GroupPage() {
               </h1>
               <div className="flex items-center space-x-4">
                 <button
-                  // onClick={handleShare}
                   onClick={() => setShowPopup(true)}
                   className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
                 >
@@ -388,30 +438,42 @@ export default function GroupPage() {
                   </span>
                 )}
               </div>
-              {selectedPhotos.length > 0 ? (
-                <button
-                  onClick={downloadSelected}
-                  className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
-                >
-                  <Download className="w-5 h-5" />
-                  <span>Download Selected</span>
-                </button>
-              ) : (
-                <button
-                  onClick={downloadAllImages}
-                  className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
-                >
-                  <Download className="w-5 h-5" />
-                  <span>Download All</span>
-                </button>
-              )}
+              <div className="flex space-x-2">
+                {selectedPhotos.length > 0 ? (
+                  <button
+                    onClick={downloadSelected}
+                    className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    <Download className="w-5 h-5" />
+                    <span>Download Selected</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={downloadAllImages}
+                    className="flex items-center space-x-2 bg-[#042035] hover:bg-[#165686] px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    <Download className="w-5 h-5" />
+                    <span>Download All</span>
+                  </button>
+                )}
+                {!isMatching && (
+                  <button
+                    onClick={handleForceRematch}
+                    className="flex items-center space-x-2 bg-gray-700/80 hover:bg-gray-600 px-4 py-2 rounded-lg"
+                  >
+                    <span>Retry Face Match</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Photo Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isMatching ? (
-              <p className="text-gray-500 col-span-2">Matching faces...</p>
+              <p className="text-gray-500 col-span-full text-center py-10">
+                Matching faces...
+              </p>
             ) : matchedImages.length > 0 ? (
               matchedImages.map((photo, index) => (
                 <div key={index} className="relative group">
@@ -450,7 +512,7 @@ export default function GroupPage() {
                 </div>
               ))
             ) : (
-              <p className="text-center col-span-full">
+              <p className="text-center col-span-full py-10">
                 No photo of yours detected.
               </p>
             )}
@@ -458,8 +520,9 @@ export default function GroupPage() {
         </div>
       </div>
 
+      {/* Share Popup */}
       {showPopup && (
-        <SharePopup qrValue={groupUrl} onClose={() => setShowPopup(false)} />
+        <SharePopup qrValue={group?.url} onClose={() => setShowPopup(false)} />
       )}
 
       {/* Image Modal */}
@@ -490,10 +553,8 @@ export default function GroupPage() {
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-hidden">
             <div className="w-full h-full flex items-center justify-center">
               <img
-                src={images[selectedImageIndex]?.url}
-                alt={`Photo ${
-                  images[selectedImageIndex]?.id || selectedImageIndex
-                }`}
+                src={matchedImages[selectedImageIndex]}
+                alt={`Photo ${selectedImageIndex}`}
                 className={`max-w-full max-h-[90vh] object-contain transform transition-all duration-300 ease-in-out
                                     ${
                                       slideDirection === "right"
@@ -506,7 +567,7 @@ export default function GroupPage() {
 
           {/* Image Counter */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full">
-            {selectedImageIndex + 1} / {images.length}
+            {selectedImageIndex + 1} / {matchedImages.length}
           </div>
         </div>
       )}
